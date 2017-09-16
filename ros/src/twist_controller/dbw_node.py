@@ -12,7 +12,7 @@ from yaw_controller import YawController
 
 from lowpass import LowPassFilter
 
-from dbw_common import get_cross_track_error, get_cross_track_error_from_frenet
+from dbw_common import get_cross_track_error_from_frenet
 
 class DBWNode(object):
 
