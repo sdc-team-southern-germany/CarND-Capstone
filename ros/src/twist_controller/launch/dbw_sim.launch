@@ -12,7 +12,7 @@
         <param name="max_lat_accel" value="3." />
         <param name="max_steer_angle" value="8." />
         <param name="min_lon_speed" value="0." />
-        <param name="controller_rate" value="30." />
+        <param name="controller_rate" value="10." />
         <param name="tau_acceleration" value="0.5" />
 
 
