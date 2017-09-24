@@ -12,7 +12,7 @@ class TwistController(object):
         self.controller_rate = controller_rate
 
         # TODO: find good parameters for PID controllers
-        self.pid_steer = pid.PID(kp=0.1, ki=0.0001, kd=0.05,
+        self.pid_steer = pid.PID(kp=0.1, ki=0.00, kd=0.25,
                                  mn=-max_steer_angle, mx=max_steer_angle)
 
         self.last_timestamp = rospy.get_time()
