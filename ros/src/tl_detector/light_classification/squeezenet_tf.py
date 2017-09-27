@@ -67,22 +67,43 @@ def fire_cluster(net, x, preloaded, cluster_name, load_vars=True, weights=None, 
     # central - squeeze
     layer_name = cluster_name + '/squeeze1x1'
     if load_vars:
-        weights, biases = get_weights_biases(preloaded, layer_name)
-    x = _conv_layer(net, layer_name + '_conv', x, weights, biases, padding='VALID')
+        w, b = get_weights_biases(preloaded, layer_name)
+        #if cluster_name == 'fire9':
+            #print('~~~~~~~~~~~~~~:', layer_name)
+            #print('weights', cluster_name, w.shape)
+            #print('biases', cluster_name, b.shape)
+    else:
+        w = weights['squeeze1x1']
+        b = biases['squeeze1x1']
+    x = _conv_layer(net, layer_name + '_conv', x, w, b, padding='VALID')
     x = _act_layer(net, layer_name + '_actv', x)
 
     # left - expand 1x1
     layer_name = cluster_name + '/expand1x1'
     if load_vars:
-        weights, biases = get_weights_biases(preloaded, layer_name)
-    x_l = _conv_layer(net, layer_name + '_conv', x, weights, biases, padding='VALID')
+        w, b = get_weights_biases(preloaded, layer_name)
+        #if cluster_name == 'fire9':
+            #print('~~~~~~~~~~~~~~:', layer_name)
+            #print('weights', cluster_name, w.shape)
+            #print('biases', cluster_name, b.shape)
+    else:
+        w = weights['expand1x1']
+        b = biases['expand1x1']
+    x_l = _conv_layer(net, layer_name + '_conv', x, w, b, padding='VALID')
     x_l = _act_layer(net, layer_name + '_actv', x_l)
 
     # right - expand 3x3
     layer_name = cluster_name + '/expand3x3'
     if load_vars:
-        weights, biases = get_weights_biases(preloaded, layer_name)
-    x_r = _conv_layer(net, layer_name + '_conv', x, weights, biases, padding='SAME')
+        w, b = get_weights_biases(preloaded, layer_name)
+        #if cluster_name == 'fire9':
+            #print('~~~~~~~~~~~~~~:', layer_name)
+            #print('weights', cluster_name, w.shape)
+            #print('biases', cluster_name, b.shape)
+    else:
+        w = weights['expand3x3']
+        b = biases['expand3x3']
+    x_r = _conv_layer(net, layer_name + '_conv', x, w, b, padding='SAME')
     x_r = _act_layer(net, layer_name + '_actv', x_r)
 
     # concatenate expand 1x1 (left) and expand 3x3 (right)
@@ -123,15 +144,39 @@ def net_preloaded(preloaded, input_image, pooling, keep_prob=None):
         # remainder (no pooling)
         x = fire_cluster(net, x, preloaded, cluster_name='fire6', load_vars=True)
         fire6_bypass = x
-        weights_fire7 = tf.Variable(tf.truncated_normal(shape=(1, 1, 384, 384), mean = mu, stddev = sigma))
-        biases_fire7  = tf.Variable(tf.zeros(384))
-        x = fire_cluster(net, x, preloaded, cluster_name='fire7', load_vars=True, weights=weights_fire7, biases=biases_fire7)
-        weights_fire8 = tf.Variable(tf.truncated_normal(shape=(1, 1, 384, 512), mean = mu, stddev = sigma))
-        biases_fire8  = tf.Variable(tf.zeros(512))
-        x = fire_cluster(net, x, preloaded, cluster_name='fire8', load_vars=True, weights=weights_fire8, biases=biases_fire8)
-        weights_fire9 = tf.Variable(tf.truncated_normal(shape=(1, 1, 512, 512), mean = mu, stddev = sigma))
-        biases_fire9  = tf.Variable(tf.zeros(512))
-        x = fire_cluster(net, x, preloaded, cluster_name='fire9', load_vars=True, weights=weights_fire9, biases=biases_fire9)
+        
+        # fire7 cluster
+        weights_fire7_squeeze1x1 = np.random.normal(mu, sigma, size=(1, 1, 384, 48))
+        weights_fire7_expand1x1  = np.random.normal(mu, sigma, size=(1, 1, 48, 192))
+        weights_fire7_expand3x3  = np.random.normal(mu, sigma, size=(1, 1, 48, 192))
+        biases_fire7_squeeze1x1  = np.random.normal(mu, sigma, size=(48))
+        biases_fire7_expand1x1   = np.random.normal(mu, sigma, size=(192))
+        biases_fire7_expand3x3   = np.random.normal(mu, sigma, size=(192))
+        weights_fire7 = {'squeeze1x1': weights_fire7_squeeze1x1, 'expand1x1': weights_fire7_expand1x1, 'expand3x3': weights_fire7_expand3x3}
+        biases_fire7  = {'squeeze1x1': biases_fire7_squeeze1x1, 'expand1x1': biases_fire7_expand1x1, 'expand3x3': biases_fire7_expand3x3}
+        x = fire_cluster(net, x, preloaded, cluster_name='fire7', load_vars=False, weights=weights_fire7, biases=biases_fire7)
+        
+        # fire8 cluster
+        weights_fire8_squeeze1x1 = np.random.normal(mu, sigma, size=(1, 1, 384, 64))
+        weights_fire8_expand1x1  = np.random.normal(mu, sigma, size=(1, 1, 64, 256))
+        weights_fire8_expand3x3  = np.random.normal(mu, sigma, size=(1, 1, 64, 256))
+        biases_fire8_squeeze1x1  = np.random.normal(mu, sigma, size=(64))
+        biases_fire8_expand1x1   = np.random.normal(mu, sigma, size=(256))
+        biases_fire8_expand3x3   = np.random.normal(mu, sigma, size=(256))
+        weights_fire8 = {'squeeze1x1': weights_fire8_squeeze1x1, 'expand1x1': weights_fire8_expand1x1, 'expand3x3': weights_fire8_expand3x3}
+        biases_fire8  = {'squeeze1x1': biases_fire8_squeeze1x1, 'expand1x1': biases_fire8_expand1x1, 'expand3x3': biases_fire8_expand3x3}
+        x = fire_cluster(net, x, preloaded, cluster_name='fire8', load_vars=False, weights=weights_fire8, biases=biases_fire8)
+
+        # fire9 cluster
+        weights_fire9_squeeze1x1 = np.random.normal(mu, sigma, size=(1, 1, 512, 64))
+        weights_fire9_expand1x1  = np.random.normal(mu, sigma, size=(1, 1, 64, 256))
+        weights_fire9_expand3x3  = np.random.normal(mu, sigma, size=(1, 1, 64, 256))
+        biases_fire9_squeeze1x1  = np.random.normal(mu, sigma, size=(64))
+        biases_fire9_expand1x1   = np.random.normal(mu, sigma, size=(256))
+        biases_fire9_expand3x3   = np.random.normal(mu, sigma, size=(256))
+        weights_fire9 = {'squeeze1x1': weights_fire9_squeeze1x1, 'expand1x1': weights_fire9_expand1x1, 'expand3x3': weights_fire9_expand3x3}
+        biases_fire9  = {'squeeze1x1': biases_fire9_squeeze1x1, 'expand1x1': biases_fire9_expand1x1, 'expand3x3': biases_fire9_expand3x3}
+        x = fire_cluster(net, x, preloaded, cluster_name='fire9', load_vars=False, weights=weights_fire9, biases=biases_fire9)
 
     # Classifier
     #####################
@@ -228,11 +273,6 @@ def main():
     data_dir_LARA = os.path.join(os.getcwd(),"data")
     get_batches_fn, X_test, y_test = helper.gen_batch_function_LARA(data_dir_LARA)
 
-    # Test generator image and label
-#    gen = get_batches_fn()
-#    for image, label in gen:
-#	print("testing generator image and label")
-
     # Placeholders
     images        = tf.placeholder(dtype=tf.float32, shape=(None, helper.HEIGHT, helper.WIDTH, 3), name="input_images")
     labels        = tf.placeholder(dtype=tf.int32, shape=None, name="labels")
@@ -290,8 +330,7 @@ def main():
         for epoch in range(epochs):
             gen = get_batches_fn()
             for X_train, y_train in gen:
-                # XTrain shape: (128, 227, 227, 3)
-                # y_train shape: (128,)
+
                 _, loss = sess.run([training_operation, cross_entropy_loss],
                                    feed_dict={images: X_train,
                                               labels: y_train,
