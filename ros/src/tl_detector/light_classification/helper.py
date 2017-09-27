@@ -14,7 +14,7 @@ HEIGHT = 227
 # Ratio of training to test data [0:1]
 RATIO  = 0.8
 
-batch_size = 128
+batch_size = 64
 
 
 def get_class(label):
@@ -38,8 +38,6 @@ def get_image(image_file):
 
 def resize_image(image):
     image = cv2.resize(image, (WIDTH, HEIGHT), interpolation = cv2.INTER_LINEAR)
-#    image = cv2.resize(image, (WIDTH, HEIGHT), interpolation = cv2.INTER_AREA)
-#    image = cv2.resize(image, (WIDTH, HEIGHT), interpolation = cv2.INTER_CUBIC)
     return image
 
 def gen_batch_function_LARA(data_path):
@@ -95,6 +93,7 @@ def gen_batch_function_LARA(data_path):
 #            cv2.imshow("Image window", images[0])
 #            cv2.waitKey(5000)
 
+            images, labels = flip_lr(images, labels)
             yield np.array(images), np.array(labels)
 
 
@@ -124,3 +123,10 @@ def preprocess(image, mean_pixel):
     img_out[:, :, 0] = swap_img[:, :, 2]
     img_out[:, :, 2] = swap_img[:, :, 0]
     return img_out - mean_pixel
+
+def flip_lr(X, y):
+    for i in range(len(y)):
+        X.append(np.fliplr(X[i]))
+        y.append(y[i])
+
+    return X, y
