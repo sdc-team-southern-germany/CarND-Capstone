@@ -16,8 +16,8 @@ class SpeedController(object):
         self.vehicle_mass = vehicle_mass
         self.wheel_radius = wheel_radius
 
-        self.pid_acceleration = pid.PID(kp=0.8, ki=0.05, kd=0.2, mn=self.decel_limit, mx=self.accel_limit)
-        self.pid_throttle = pid.PID(kp=0.5, ki=0.01, kd=0.05, mn=0.0, mx=1.0)
+        self.pid_acceleration = pid.PID(kp=0.2, ki=0.05, kd=0.05, mn=self.decel_limit, mx=self.accel_limit)
+        self.pid_throttle = pid.PID(kp=0.3, ki=0.01, kd=0.025, mn=0.0, mx=0.4)
 
         self.last_timestamp = rospy.get_time()
 
@@ -50,7 +50,7 @@ class SpeedController(object):
 
         if (acceleration_cmd < self.brake_deadband):
             throttle_out = 0
-            brake_out = -acceleration_cmd * self.vehicle_mass * self.wheel_radius
+            brake_out = -acceleration_cmd * self.vehicle_mass * self.wheel_radius / 4
             self.pid_acceleration.reset()
             rospy.logdebug('[speed_controller] Really braking')
         elif (acceleration_cmd < 0):
