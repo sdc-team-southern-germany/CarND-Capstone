@@ -1,11 +1,16 @@
 from styx_msgs.msg import TrafficLight
 import tensorflow as tf
-import helper
-import cv2
+#import helper
+#import cv2
+from scipy.misc import imresize
 import os
 import numpy as np
+
 # Get the model directory
 MODEL_DIR = os.getcwd()+ "/light_classification/model"
+
+WIDTH  = 227
+HEIGHT = 227
 
 
 class TLClassifier(object):
@@ -31,11 +36,21 @@ class TLClassifier(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
+        def resize_image(image):
+            #image = cv2.resize(image, (WIDTH, HEIGHT), interpolation = cv2.INTER_LINEAR)
+            image = imresize(image, (WIDTH, HEIGHT))
+            return image
+
+        def calc_softmax(x):
+            """Compute softmax values for each sets of scores in x."""
+            return np.exp(x)/np.sum(np.exp(x), axis=0)
+
         #TODO implement light color prediction
         
         #self.saver.restore(self.sess, tf.train.latest_checkpoint(MODEL_DIR))
         #print("Image: ", image.shape)
-        resized_img = helper.resize_image(image)
+        #resized_img = helper.resize_image(image)
+        resized_img = resize_image(image)
         #print("resized shape: ", resized_img.shape)
 
         expanded_img = np.expand_dims(resized_img, axis=0)
@@ -57,7 +72,8 @@ class TLClassifier(object):
         if all(val==predictions[0] for val in predictions):
             return TrafficLight.UNKNOWN
 
-        softmax = helper.calc_softmax(predictions)
+        #softmax = helper.calc_softmax(predictions)
+        softmax = calc_softmax(predictions)
         max_index = np.argmax(softmax)
         #print("Softmax: ", softmax)
 

@@ -2,7 +2,10 @@
 
 import os
 import numpy as np
-import cv2
+#import cv2
+from scipy.misc import imread
+from scipy.misc import imshow
+from scipy.misc import imresize
 import math
 import random
 from glob import glob
@@ -32,12 +35,14 @@ def get_class(label):
     return new_label
 
 def get_image(image_file):
-    image = cv2.imread(image_file)
+    #image = cv2.imread(image_file)
+    image = imread(image_file, mode='RGB')
     image = resize_image(image)
     return image
 
 def resize_image(image):
-    image = cv2.resize(image, (WIDTH, HEIGHT), interpolation = cv2.INTER_LINEAR)
+    #image = cv2.resize(image, (WIDTH, HEIGHT), interpolation = cv2.INTER_LINEAR)
+    image = imresize(image, (WIDTH, HEIGHT))
     return image
 
 def gen_batch_function_LARA(data_path):
@@ -88,12 +93,16 @@ def gen_batch_function_LARA(data_path):
                     if re.match(pattern, image_file):
                         images.append(get_image(image_file))
                         break
+
             # To visualise gen data
 #            print(labels[0])
+#            imshow(images[0])
 #            cv2.imshow("Image window", images[0])
 #            cv2.waitKey(5000)
 
+            # Augment images
             images, labels = flip_lr(images, labels)
+            # Yield
             yield np.array(images), np.array(labels)
 
 

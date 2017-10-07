@@ -154,7 +154,7 @@ def net_preloaded(preloaded, input_image, pooling, keep_prob=None):
         biases_fire7_expand3x3   = np.random.normal(mu, sigma, size=(192))
         weights_fire7 = {'squeeze1x1': weights_fire7_squeeze1x1, 'expand1x1': weights_fire7_expand1x1, 'expand3x3': weights_fire7_expand3x3}
         biases_fire7  = {'squeeze1x1': biases_fire7_squeeze1x1, 'expand1x1': biases_fire7_expand1x1, 'expand3x3': biases_fire7_expand3x3}
-        x = fire_cluster(net, x, preloaded, cluster_name='fire7', load_vars=False, weights=weights_fire7, biases=biases_fire7)
+        x = fire_cluster(net, x, preloaded, cluster_name='fire7', load_vars=True, weights=weights_fire7, biases=biases_fire7)
         
         # fire8 cluster
         weights_fire8_squeeze1x1 = np.random.normal(mu, sigma, size=(1, 1, 384, 64))
@@ -165,7 +165,7 @@ def net_preloaded(preloaded, input_image, pooling, keep_prob=None):
         biases_fire8_expand3x3   = np.random.normal(mu, sigma, size=(256))
         weights_fire8 = {'squeeze1x1': weights_fire8_squeeze1x1, 'expand1x1': weights_fire8_expand1x1, 'expand3x3': weights_fire8_expand3x3}
         biases_fire8  = {'squeeze1x1': biases_fire8_squeeze1x1, 'expand1x1': biases_fire8_expand1x1, 'expand3x3': biases_fire8_expand3x3}
-        x = fire_cluster(net, x, preloaded, cluster_name='fire8', load_vars=False, weights=weights_fire8, biases=biases_fire8)
+        x = fire_cluster(net, x, preloaded, cluster_name='fire8', load_vars=True, weights=weights_fire8, biases=biases_fire8)
 
         # fire9 cluster
         weights_fire9_squeeze1x1 = np.random.normal(mu, sigma, size=(1, 1, 512, 64))
@@ -176,7 +176,7 @@ def net_preloaded(preloaded, input_image, pooling, keep_prob=None):
         biases_fire9_expand3x3   = np.random.normal(mu, sigma, size=(256))
         weights_fire9 = {'squeeze1x1': weights_fire9_squeeze1x1, 'expand1x1': weights_fire9_expand1x1, 'expand3x3': weights_fire9_expand3x3}
         biases_fire9  = {'squeeze1x1': biases_fire9_squeeze1x1, 'expand1x1': biases_fire9_expand1x1, 'expand3x3': biases_fire9_expand3x3}
-        x = fire_cluster(net, x, preloaded, cluster_name='fire9', load_vars=False, weights=weights_fire9, biases=biases_fire9)
+        x = fire_cluster(net, x, preloaded, cluster_name='fire9', load_vars=True, weights=weights_fire9, biases=biases_fire9)
 
     # Classifier
     #####################

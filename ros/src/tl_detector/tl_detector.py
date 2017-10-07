@@ -8,11 +8,13 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from light_classification.tl_classifier import TLClassifier
 import tf
-import cv2
+#import cv2
 import yaml
 import os
 import numpy as np
 from scipy import spatial
+from scipy.misc import imshow
+from scipy.misc import imsave
 
 STATE_COUNT_THRESHOLD = 3
 GET_TRAINING_DATA = False        # Set to True if you want to save training data
@@ -220,8 +222,9 @@ class TLDetector(object):
         # Display camera image
         enable_imshow = False    #activate to see the camera image
         if enable_imshow:
-            cv2.imshow("Image window", cv_image)
-            cv2.waitKey(1)
+            #cv2.imshow("Image window", cv_image)
+            #cv2.waitKey(1)
+            scipy.misc.imshow(images[0])
 
         # Commented out for testing...
         #x, y = self.project_to_image_plane(light.pose.pose.position)
@@ -272,7 +275,8 @@ class TLDetector(object):
 
                     if self.detected_tlight != self.cust_tlights[ind]:
                         self.detected_tlight = self.cust_tlights[ind]
-                        print("[TLD] TL %d found, A front distance to current pose: %f, waypoint index: %d" % (ind, dist, light))
+                        #print("[TLD] TL %d found, A front distance to current pose: %f, waypoint index: %d" % (ind, dist, light))
+                        print("[TLD] TL %d found %dm ahead of current pose at waypoint index %d" % (ind, dist, light))
             else:
                 self.detected_tlight = None
                 self.state = TrafficLight.UNKNOWN
@@ -291,7 +295,8 @@ class TLDetector(object):
         """
 
         filename= SIM_DATA_PATH + "TL_"+str(self.counter)+".png"
-        cv2.imwrite(filename,image)
+        #cv2.imwrite(filename,image)
+        imsave(filename,image)
         if os.path.exists(SIM_DATA_PATH+"label.txt"):
             append_write = 'a' # append if already exists
         else:
