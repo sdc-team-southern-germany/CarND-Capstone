@@ -297,8 +297,8 @@ class TLClassifier(object):
             final_color = color_freq.most_common(1)[0]
 
             max_prob = max(scores)
-            print("Final result: %d, probs: %f" %
-                  (final_color[0], max_prob))
+            #print("Final result: %d, probs: %f" %
+            #      (final_color[0], max_prob))
 
             bbox_img = draw_bboxes(rgb_img, box_coords, det_colors, scores)
 
