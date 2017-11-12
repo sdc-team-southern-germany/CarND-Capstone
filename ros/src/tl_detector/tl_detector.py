@@ -116,10 +116,10 @@ class TLDetector(object):
         used.
         '''
         if self.state != state:
-            self.state_count = 0
+            self.state_count = 1
             self.state = state
             #print("TL state: ", state)
-        elif self.state_count >= self.state_count_threshold:
+        if self.state_count >= self.state_count_threshold:
             self.last_state = self.state
             light_wp = light_wp if state == TrafficLight.RED else -1
             #print("RED light wp_index: ", light_wp)

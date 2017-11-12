@@ -39,6 +39,16 @@ def filter_boxes(min_score, boxes, scores, classes):
             if classes[i] == 10:    # Traffic light class is 10
                 idxs.append(i)
 
+    # If no boxes are greater than 'min_score', append the highest
+    # probability box if it's classification = 10
+    if len(idxs) == 0:
+        max_score = max(scores)
+        max_idx = [i for i, score in enumerate(scores) if score == max_score]
+        max_idx = max_idx[0]
+        if classes[max_idx] == 10:
+            idxs.append(max_idx)
+
+
     filtered_boxes = boxes[idxs, ...]
     filtered_scores = scores[idxs, ...]
     filtered_classes = classes[idxs, ...]
@@ -172,9 +182,9 @@ def match_histogram(cropped_imgs):
         yellow_thres_ratio = 0.4
         blue_thres = 0.07
 
-        redgreen_ratio = RGB[0] / RGB[1] if RGB[1] > 0.else 10
+        redgreen_ratio = RGB[0] / RGB[1] if RGB[1] > 0. else 10
 
-        greenblue_ratio = RGB[1] / RGB[2] if RGB[2] > 0.else 10
+        greenblue_ratio = RGB[1] / RGB[2] if RGB[2] > 0. else 10
 
         if RGB[2] < blue_thres:
             if redgreen_ratio > red_thres_ratio:
