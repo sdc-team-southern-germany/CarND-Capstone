@@ -40,14 +40,18 @@ def filter_boxes(min_score, boxes, scores, classes):
                 idxs.append(i)
 
     # If no boxes are greater than 'min_score', append the highest
-    # probability box if it's classification = 10
+    # probability box if it's classification = 10 and prob > min_prob and
+    # the scaled height > 0.05
     if len(idxs) == 0:
         max_score = max(scores)
         max_idx = [i for i, score in enumerate(scores) if score == max_score]
         max_idx = max_idx[0]
-        if classes[max_idx] == 10:
-            idxs.append(max_idx)
+        min_prob = 0.1
 
+        if classes[max_idx] == 10 and scores[max_idx] > min_prob:
+            b_height = boxes[max_idx][2] - boxes[max_idx][0]
+            if b_height > 0.05:
+                idxs.append(max_idx)
 
     filtered_boxes = boxes[idxs, ...]
     filtered_scores = scores[idxs, ...]
@@ -177,7 +181,7 @@ def match_histogram(cropped_imgs):
         max_idx = [i for i, ch in enumerate(RGB) if ch == max_val]
         #print("RGB: ", RGB)
         #print("Max idx : %s with val %f " % (max_idx, max_val))
-        red_thres_ratio = 1.0
+        red_thres_ratio = 1.2
         green_thres_ratio = 1.0
         yellow_thres_ratio = 0.4
         blue_thres = 0.07

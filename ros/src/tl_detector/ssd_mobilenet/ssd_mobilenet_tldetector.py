@@ -46,8 +46,12 @@ def filter_boxes(min_score, boxes, scores, classes):
         max_score = max(scores)
         max_idx = [i for i, score in enumerate(scores) if score == max_score]
         max_idx = max_idx[0]
-        if classes[max_idx] == 10:
-            idxs.append(max_idx)
+        min_prob = 0.1
+        if classes[max_idx] == 10 and scores[max_idx] > min_prob:
+            b_height = boxes[max_idx][2] - boxes[max_idx][0]
+            print("box height: %f, box: %s", b_height, boxes[max_idx])
+            if b_height > 0.05: # filter very small box height (in scale)
+                idxs.append(max_idx)
 
     filtered_boxes = boxes[idxs, ...]
     filtered_scores = scores[idxs, ...]
@@ -179,7 +183,7 @@ def match_histogram(cropped_imgs):
         max_idx = [i for i, ch in enumerate(RGB) if ch == max_val]
         print("RGB: ", RGB)
         #print("Max idx : %s with val %f " % (max_idx, max_val))
-        red_thres_ratio = 1.0
+        red_thres_ratio = 1.2
         green_thres_ratio = 1.0
         yellow_thres_ratio = 0.4
         blue_thres = 0.07
@@ -189,6 +193,7 @@ def match_histogram(cropped_imgs):
         greenblue_ratio = RGB[1] / RGB[2] if RGB[2] > 0. else 10
 
         if RGB[2] < blue_thres:
+            print("red green ratio: ", redgreen_ratio)
             if redgreen_ratio > red_thres_ratio:
                 results.append(COLOR_TO_CLASS["Red"])
             elif redgreen_ratio >= yellow_thres_ratio:
