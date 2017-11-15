@@ -43,15 +43,15 @@ def filter_boxes(min_score, boxes, scores, classes):
     # probability box if it's classification = 10 and prob > min_prob and
     # the scaled height > 0.05
     if len(idxs) == 0:
-        max_score = max(scores)
-        max_idx = [i for i, score in enumerate(scores) if score == max_score]
-        max_idx = max_idx[0]
-        min_prob = 0.1
-
-        if classes[max_idx] == 10 and scores[max_idx] > min_prob:
-            b_height = boxes[max_idx][2] - boxes[max_idx][0]
-            if b_height > 0.05:
-                idxs.append(max_idx)
+        # the scores are sorted, no need to calc the max, check the first two detection
+        min_prob = 0.08
+        for idx in range(2):
+            if classes[idx] == 10 and scores[idx] > min_prob:
+                b_height = boxes[idx][2] - boxes[idx][0]
+                print("box height: %f, box: %s", b_height, boxes[idx])
+                if b_height > 0.05: # filter very small box height (in scale)
+                    idxs.append(idx)
+                    break
 
     filtered_boxes = boxes[idxs, ...]
     filtered_scores = scores[idxs, ...]
@@ -142,6 +142,7 @@ def crop_image(rgb_image, boxes):
 def match_histogram(cropped_imgs):
     ''' Traffic light classification using histogram color matching '''
     results = []
+    color_prob = []     #add uncertainty for the matching result
     for cropped_img in cropped_imgs:
         RGB = [0., 0., 0.]
         # Show numpy histogram
@@ -156,8 +157,8 @@ def match_histogram(cropped_imgs):
             total_val = np.sum(np.array(list(color_freq.values())))
             sorted_colors_tp = list(sorted(color_freq.items()))
 
-            # calculate only the frequency of the 250-255 values
-            for i in range(250, 256):
+            # calculate only the frequency of the 200-255 values
+            for i in range(220, 256):
                 RGB[ch] = RGB[ch] + color_freq[i]
 
             # Normalization
@@ -179,29 +180,36 @@ def match_histogram(cropped_imgs):
 
         max_val = max(RGB)
         max_idx = [i for i, ch in enumerate(RGB) if ch == max_val]
-        #print("RGB: ", RGB)
+        max_idx=max_idx[0]
+        
         #print("Max idx : %s with val %f " % (max_idx, max_val))
-        red_thres_ratio = 1.2
-        green_thres_ratio = 1.0
+        red_thres_ratio = 1.5
+        green_thres_ratio = 3
         yellow_thres_ratio = 0.4
-        blue_thres = 0.07
 
         redgreen_ratio = RGB[0] / RGB[1] if RGB[1] > 0. else 10
 
         greenblue_ratio = RGB[1] / RGB[2] if RGB[2] > 0. else 10
 
-        if RGB[2] < blue_thres:
-            if redgreen_ratio > red_thres_ratio:
-                results.append(COLOR_TO_CLASS["Red"])
-            elif redgreen_ratio >= yellow_thres_ratio:
-                results.append(COLOR_TO_CLASS["Yellow"])
-            else:
-                results.append(COLOR_TO_CLASS["Green"])
+        if (redgreen_ratio > red_thres_ratio):
+            results.append(COLOR_TO_CLASS["Red"])
+            color_prob.append(0.8)
         else:
-            if greenblue_ratio > green_thres_ratio:
+            if greenblue_ratio < 2.5:
                 results.append(COLOR_TO_CLASS["Green"])
+                color_prob.append(0.4)
+            elif redgreen_ratio < 0.4:
+                results.append(COLOR_TO_CLASS["Green"])
+                color_prob.append(0.8)
             else:
-                results.append(COLOR_TO_CLASS["Yellow"])
+                # Not sure
+                color_prob.append(0.3)
+                if greenblue_ratio > green_thres_ratio and redgreen_ratio > 1.1:
+                    results.append(COLOR_TO_CLASS["Red"])
+                elif greenblue_ratio < green_thres_ratio:
+                    results.append(COLOR_TO_CLASS["Green"])
+                else:
+                    results.append(COLOR_TO_CLASS["Yellow"])
 
             # Not appending unknown
             # results.append(COLOR_TO_CLASS["Unknown"])
@@ -223,7 +231,7 @@ def match_histogram(cropped_imgs):
         # if VIZ_DEBUG:
         #     plt.plot(cropped_img.histogram())
         #     plt.show()
-    return results
+    return results, color_prob
 
 
 class TLClassifier(object):
@@ -288,17 +296,19 @@ class TLClassifier(object):
         #Cropped image
         if len(box_coords) > 0:
             cropped_imgs = crop_image(rgb_img, box_coords)
-            det_colors = match_histogram(cropped_imgs)
+            det_colors, prob_colors = match_histogram(cropped_imgs)
 
             if det_colors is None:
-                return 3
+                return 3, 0
 
             color_freq = collections.Counter(det_colors)
             final_color = color_freq.most_common(1)[0]
 
-            max_prob = max(scores)
-            #print("Final result: %d, probs: %f" %
-            #      (final_color[0], max_prob))
+            # reduce the score if the color matching not certain
+            if prob_colors[0] < 0.5:
+                max_prob = max(scores) * 0.75
+            else:
+                max_prob = max(scores)
 
             bbox_img = draw_bboxes(rgb_img, box_coords, det_colors, scores)
 
